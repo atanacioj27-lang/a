@@ -1,0 +1,8 @@
+{
+  "name": "Aether Social",
+  "description": "A futuristic social media platform featuring AI-powered post generation, smart bio crafting, and AI image creation powered by Gemini.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}
