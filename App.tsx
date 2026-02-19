@@ -46,10 +46,10 @@ const App: React.FC = () => {
       {
         id: '101',
         userId: '2',
-        userName: 'Aether AI',
-        userHandle: '@aether_ai',
+        userName: 'Sinigang AI',
+        userHandle: '@sinigang_ai',
         userAvatar: 'https://picsum.photos/seed/ai/200/200',
-        content: "Welcome to Aether! The first social platform powered by Gemini. Experience true creativity with our AI generation tools. 🚀 #AetherAI #Future",
+        content: "Welcome to Sinigang! The first social platform powered by Gemini. Experience true creativity with our AI generation tools. 🚀 #SinigangSocial #Future",
         image: 'https://picsum.photos/seed/tech/800/600',
         likes: 242,
         comments: [
@@ -76,7 +76,7 @@ const App: React.FC = () => {
 
     // Initial Notifications
     setNotifications([
-      { id: 'n1', type: 'LIKE', user: { name: 'Aether AI', avatar: 'https://picsum.photos/seed/ai/200/200' }, content: 'liked your post about coding.', timestamp: '10m ago', isRead: false },
+      { id: 'n1', type: 'LIKE', user: { name: 'Sinigang AI', avatar: 'https://picsum.photos/seed/ai/200/200' }, content: 'liked your post about coding.', timestamp: '10m ago', isRead: false },
       { id: 'n2', type: 'FOLLOW', user: { name: 'Elena Rossi', avatar: 'https://picsum.photos/seed/a2/50/50' }, content: 'started following you.', timestamp: '2h ago', isRead: true },
       { id: 'n3', type: 'MENTION', user: { name: 'Marcus Chen', avatar: 'https://picsum.photos/seed/a1/50/50' }, content: 'mentioned you in a post: "Check out the new project!"', timestamp: '5h ago', isRead: true },
     ]);
@@ -197,7 +197,7 @@ const App: React.FC = () => {
   const unreadCount = useMemo(() => notifications.filter(n => !n.isRead).length, [notifications]);
   const stories = useMemo(() => [
     { id: 's1', name: 'You', avatar: currentUser?.avatar || 'https://picsum.photos/seed/you/100/100' },
-    { id: 's2', name: 'Aether AI', avatar: 'https://picsum.photos/seed/ai-story/100/100', isLive: true },
+    { id: 's2', name: 'Sinigang AI', avatar: 'https://picsum.photos/seed/ai-story/100/100', isLive: true },
     { id: 's3', name: 'Marcus', avatar: 'https://picsum.photos/seed/marcus-story/100/100' },
     { id: 's4', name: 'Elena', avatar: 'https://picsum.photos/seed/elena-story/100/100' },
     { id: 's5', name: 'Liam', avatar: 'https://picsum.photos/seed/liam-story/100/100' },
@@ -280,12 +280,12 @@ const App: React.FC = () => {
         return (
           <div className="max-w-4xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="mb-8 text-center">
-              <h1 className="text-4xl font-black text-slate-900 dark:text-slate-100 mb-2 tracking-tighter">Discover Aether</h1>
+              <h1 className="text-4xl font-black text-slate-900 dark:text-slate-100 mb-2 tracking-tighter">Discover Sinigang</h1>
               <p className="text-slate-500 dark:text-slate-400 mb-8">Search the world with real-time AI and visual previews.</p>
               <div className="relative group max-w-2xl mx-auto">
                 <input 
                   type="text" 
-                  placeholder="Ask Aether AI for real-time news or trends..."
+                  placeholder="Ask Sinigang AI for real-time news or trends..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -337,7 +337,7 @@ const App: React.FC = () => {
                         <i className="fa-solid fa-sparkles text-indigo-600 dark:text-indigo-400"></i>
                       </div>
                       <div>
-                        <h3 className="font-black text-slate-900 dark:text-slate-100 leading-tight">Aether Synthesis</h3>
+                        <h3 className="font-black text-slate-900 dark:text-slate-100 leading-tight">Sinigang Synthesis</h3>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Grounded Real-time Analysis</p>
                       </div>
                     </div>
@@ -427,7 +427,7 @@ const App: React.FC = () => {
           <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none transition-transform hover:scale-110">
             <i className="fa-solid fa-bolt text-white text-xl"></i>
           </div>
-          <span className="hidden lg:block text-2xl font-black text-indigo-900 dark:text-indigo-100 tracking-tighter">AETHER</span>
+          <span className="hidden lg:block text-2xl font-black text-indigo-900 dark:text-indigo-100 tracking-tighter">SINIGANG</span>
         </div>
 
         <div className="flex-1 flex md:flex-col items-center lg:items-stretch justify-around w-full gap-2">
@@ -491,7 +491,7 @@ const App: React.FC = () => {
             <TrendingItem tag="#Web3World" posts="124k" />
             <TrendingItem tag="#DigitalRenaissance" posts="98k" />
             <TrendingItem tag="#GenerativeArt" posts="82k" />
-            <TrendingItem tag="#AetherAI" posts="45k" />
+            <TrendingItem tag="#SinigangSocial" posts="45k" />
           </ul>
         </div>
 
@@ -533,7 +533,7 @@ const App: React.FC = () => {
             <i className="fa-regular fa-paper-plane text-indigo-500"></i>
           </h3>
           <ul className="space-y-4">
-            <MessageItem name="Aether AI" handle="@aether_ai" lastMessage="I can help draft your next post!" time="2m" unread />
+            <MessageItem name="Sinigang AI" handle="@sinigang_ai" lastMessage="I can help draft your next post!" time="2m" unread />
             <MessageItem name="Elena Rossi" handle="@elena_codes" lastMessage="Would love your feedback on my portfolio redesign." time="1h" />
             <MessageItem name="Marcus Chen" handle="@mchen_art" lastMessage="Collab on an AI art challenge this weekend?" time="4h" />
           </ul>
@@ -543,7 +543,7 @@ const App: React.FC = () => {
           <a href="#" className="hover:text-indigo-500 transition-colors">Privacy</a>
           <a href="#" className="hover:text-indigo-500 transition-colors">Terms</a>
           <a href="#" className="hover:text-indigo-500 transition-colors">Cookies</a>
-          <span>© 2025 Aether AI</span>
+          <span>© 2025 Sinigang Social</span>
         </div>
       </aside>
 
