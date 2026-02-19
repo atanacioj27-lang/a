@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Post, User, ViewMode, Comment, Notification } from './types';
 import PostCard from './components/PostCard';
 import CreatePost from './components/CreatePost';
+import Stories from './components/Stories';
 import Profile from './components/Profile';
 import Auth from './components/Auth';
 import AiAssistant from './components/AiAssistant';
@@ -194,6 +195,13 @@ const App: React.FC = () => {
   };
 
   const unreadCount = useMemo(() => notifications.filter(n => !n.isRead).length, [notifications]);
+  const stories = useMemo(() => [
+    { id: 's1', name: 'You', avatar: currentUser?.avatar || 'https://picsum.photos/seed/you/100/100' },
+    { id: 's2', name: 'Aether AI', avatar: 'https://picsum.photos/seed/ai-story/100/100', isLive: true },
+    { id: 's3', name: 'Marcus', avatar: 'https://picsum.photos/seed/marcus-story/100/100' },
+    { id: 's4', name: 'Elena', avatar: 'https://picsum.photos/seed/elena-story/100/100' },
+    { id: 's5', name: 'Liam', avatar: 'https://picsum.photos/seed/liam-story/100/100' },
+  ], [currentUser?.avatar]);
 
   if (!isAuthenticated || !currentUser) {
     return <Auth onAuthenticate={handleAuthSuccess} />;
@@ -204,6 +212,7 @@ const App: React.FC = () => {
       case ViewMode.FEED:
         return (
           <div className="max-w-xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <Stories stories={stories} />
             <CreatePost userAvatar={currentUser.avatar} onPostCreated={handleCreatePost} />
             <div className="space-y-6">
               {posts.map(post => (
@@ -517,6 +526,18 @@ const App: React.FC = () => {
             />
           </ul>
         </div>
+
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm mt-8">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-6 flex items-center justify-between text-sm uppercase tracking-wider">
+            Messages
+            <i className="fa-regular fa-paper-plane text-indigo-500"></i>
+          </h3>
+          <ul className="space-y-4">
+            <MessageItem name="Aether AI" handle="@aether_ai" lastMessage="I can help draft your next post!" time="2m" unread />
+            <MessageItem name="Elena Rossi" handle="@elena_codes" lastMessage="Would love your feedback on my portfolio redesign." time="1h" />
+            <MessageItem name="Marcus Chen" handle="@mchen_art" lastMessage="Collab on an AI art challenge this weekend?" time="4h" />
+          </ul>
+        </div>
         
         <div className="mt-8 px-6 text-[10px] text-slate-400 dark:text-slate-600 font-bold uppercase tracking-widest flex flex-wrap gap-4">
           <a href="#" className="hover:text-indigo-500 transition-colors">Privacy</a>
@@ -575,6 +596,22 @@ const FollowItem: React.FC<{ id: string; name: string; handle: string; avatar: s
     >
       {isFollowing ? 'Following' : 'Follow'}
     </button>
+  </li>
+);
+
+const MessageItem: React.FC<{ name: string; handle: string; lastMessage: string; time: string; unread?: boolean }> = ({ name, handle, lastMessage, time, unread }) => (
+  <li className="border border-slate-100 dark:border-slate-800 rounded-2xl p-3 hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors cursor-pointer">
+    <div className="flex items-start justify-between gap-3 mb-1">
+      <div>
+        <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{name}</p>
+        <p className="text-[10px] text-slate-400">{handle}</p>
+      </div>
+      <span className="text-[10px] font-bold text-slate-400">{time}</span>
+    </div>
+    <div className="flex items-center justify-between gap-2">
+      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">{lastMessage}</p>
+      {unread && <span className="w-2 h-2 rounded-full bg-indigo-500"></span>}
+    </div>
   </li>
 );
 
