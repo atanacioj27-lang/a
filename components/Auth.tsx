@@ -23,7 +23,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthenticate }) => {
       username: username ? `@${username.replace('@', '')}` : '@explorer',
       avatar: `https://picsum.photos/seed/${username || 'default'}/200/200`,
       coverImage: 'https://picsum.photos/seed/cover/1200/400',
-      bio: 'New member of the Sinigang collective. Ready to explore the digital frontier.',
+      bio: 'New member of Sinigang Social. Ready to share, connect, and explore the digital frontier.',
       followers: 0,
       following: 0
     };
@@ -41,7 +41,7 @@ const Auth: React.FC<AuthProps> = ({ onAuthenticate }) => {
           <div className="w-16 h-16 bg-indigo-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-500/40 mx-auto mb-6">
             <i className="fa-solid fa-bolt text-white text-3xl"></i>
           </div>
-          <h1 className="text-4xl font-black text-white tracking-tighter mb-2">SINIGANG</h1>
+          <h1 className="text-4xl font-black text-white tracking-tighter mb-2">SINIGANG SOCIAL</h1>
           <p className="text-slate-400 text-sm font-medium uppercase tracking-[0.3em]">The AI Social Collective</p>
         </div>
 

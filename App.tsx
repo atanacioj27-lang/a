@@ -49,7 +49,7 @@ const App: React.FC = () => {
         userName: 'Sinigang AI',
         userHandle: '@sinigang_ai',
         userAvatar: 'https://picsum.photos/seed/ai/200/200',
-        content: "Welcome to Sinigang! The first social platform powered by Gemini. Experience true creativity with our AI generation tools. 🚀 #SinigangSocial #Future",
+        content: "Welcome to Sinigang Social! The first social platform powered by Gemini. Experience true creativity with our AI generation tools. 🚀 #SinigangSocial #Future",
         image: 'https://picsum.photos/seed/tech/800/600',
         likes: 242,
         comments: [
@@ -280,7 +280,7 @@ const App: React.FC = () => {
         return (
           <div className="max-w-4xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="mb-8 text-center">
-              <h1 className="text-4xl font-black text-slate-900 dark:text-slate-100 mb-2 tracking-tighter">Discover Sinigang</h1>
+              <h1 className="text-4xl font-black text-slate-900 dark:text-slate-100 mb-2 tracking-tighter">Discover Sinigang Social</h1>
               <p className="text-slate-500 dark:text-slate-400 mb-8">Search the world with real-time AI and visual previews.</p>
               <div className="relative group max-w-2xl mx-auto">
                 <input 
@@ -337,7 +337,7 @@ const App: React.FC = () => {
                         <i className="fa-solid fa-sparkles text-indigo-600 dark:text-indigo-400"></i>
                       </div>
                       <div>
-                        <h3 className="font-black text-slate-900 dark:text-slate-100 leading-tight">Sinigang Synthesis</h3>
+                        <h3 className="font-black text-slate-900 dark:text-slate-100 leading-tight">Sinigang Social Synthesis</h3>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Grounded Real-time Analysis</p>
                       </div>
                     </div>
@@ -427,7 +427,7 @@ const App: React.FC = () => {
           <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none transition-transform hover:scale-110">
             <i className="fa-solid fa-bolt text-white text-xl"></i>
           </div>
-          <span className="hidden lg:block text-2xl font-black text-indigo-900 dark:text-indigo-100 tracking-tighter">SINIGANG</span>
+          <span className="hidden lg:block text-2xl font-black text-indigo-900 dark:text-indigo-100 tracking-tighter">SINIGANG SOCIAL</span>
         </div>
 
         <div className="flex-1 flex md:flex-col items-center lg:items-stretch justify-around w-full gap-2">
