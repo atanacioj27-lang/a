@@ -9,9 +9,10 @@ interface ProfileProps {
   posts: Post[];
   onLike: (id: string) => void;
   onComment: (id: string, text: string) => void;
+  onBookmark: (id: string) => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ user, posts, onLike, onComment }) => {
+const Profile: React.FC<ProfileProps> = ({ user, posts, onLike, onComment, onBookmark }) => {
   const [activeTab, setActiveTab] = useState<'POSTS' | 'LIKES' | 'MEDIA'>('POSTS');
   const [isEditing, setIsEditing] = useState(false);
   const [bioInput, setBioInput] = useState(user.bio);
@@ -114,7 +115,7 @@ const Profile: React.FC<ProfileProps> = ({ user, posts, onLike, onComment }) => 
 
       <div className="space-y-6">
         {activeTab === 'POSTS' && posts.map(post => (
-          <PostCard key={post.id} post={post} onLike={onLike} onComment={onComment} />
+          <PostCard key={post.id} post={post} onLike={onLike} onComment={onComment} onBookmark={onBookmark} />
         ))}
         {activeTab === 'POSTS' && posts.length === 0 && (
           <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">

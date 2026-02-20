@@ -1,18 +1,19 @@
-
 import React, { useState, useRef } from 'react';
-import { Post, Comment } from '../types';
+import { Post } from '../types';
 import { speakText, decodeAudioData } from '../services/geminiService';
 
 interface PostCardProps {
   post: Post;
   onLike: (id: string) => void;
   onComment: (id: string, text: string) => void;
+  onBookmark: (id: string) => void;
 }
 
-const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
+const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onBookmark }) => {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [copyStatus, setCopyStatus] = useState<'idle' | 'done'>('idle');
   const audioContextRef = useRef<AudioContext | null>(null);
 
   const handleCommentSubmit = (e: React.FormEvent) => {
@@ -47,6 +48,16 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
     }
   };
 
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(`${post.content}\n\n${post.userHandle}`);
+      setCopyStatus('done');
+      setTimeout(() => setCopyStatus('idle'), 1400);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl overflow-hidden mb-6 transition-all hover:shadow-md">
       <div className="p-4 flex items-center gap-3">
@@ -56,7 +67,7 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
           <p className="text-slate-500 dark:text-slate-400 text-xs">{post.userHandle} • {post.createdAt}</p>
         </div>
         <div className="ml-auto flex items-center gap-2">
-          <button 
+          <button
             onClick={handleSpeak}
             disabled={isSpeaking}
             className={`w-8 h-8 rounded-full flex items-center justify-center transition-colors ${isSpeaking ? 'bg-indigo-100 dark:bg-indigo-900 text-indigo-600 dark:text-indigo-400' : 'text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-indigo-50 dark:hover:bg-slate-800'}`}
@@ -81,25 +92,26 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
       )}
 
       <div className="p-4 flex items-center gap-6 border-t border-slate-50 dark:border-slate-800">
-        <button 
+        <button
           onClick={() => onLike(post.id)}
           className={`flex items-center gap-2 text-sm transition-colors ${post.isLiked ? 'text-rose-500' : 'text-slate-500 hover:text-rose-500 dark:text-slate-400 dark:hover:text-rose-500'}`}
         >
           <i className={`${post.isLiked ? 'fa-solid' : 'fa-regular'} fa-heart`}></i>
           <span className="font-medium">{post.likes}</span>
         </button>
-        <button 
+        <button
           onClick={() => setShowComments(!showComments)}
           className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm transition-colors"
         >
           <i className="fa-regular fa-comment"></i>
           <span className="font-medium">{post.comments.length}</span>
         </button>
-        <button className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-400 text-sm transition-colors">
+        <button onClick={handleShare} className="flex items-center gap-2 text-slate-500 dark:text-slate-400 hover:text-green-600 dark:hover:text-green-400 text-sm transition-colors">
           <i className="fa-regular fa-paper-plane"></i>
+          {copyStatus === 'done' && <span className="text-[10px] font-bold text-green-600 dark:text-green-400">Copied</span>}
         </button>
-        <button className="ml-auto text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 text-sm transition-colors">
-          <i className="fa-regular fa-bookmark"></i>
+        <button onClick={() => onBookmark(post.id)} className={`ml-auto text-sm transition-colors ${post.isBookmarked ? 'text-indigo-600 dark:text-indigo-400' : 'text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400'}`}>
+          <i className={`${post.isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark`}></i>
         </button>
       </div>
 
@@ -121,20 +133,14 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment }) => {
           </div>
 
           <form onSubmit={handleCommentSubmit} className="flex gap-2">
-            <input 
-              type="text" 
-              placeholder="Write a comment..."
+            <input
+              type="text"
               value={commentText}
               onChange={(e) => setCommentText(e.target.value)}
-              className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full px-4 py-2 text-xs text-slate-900 dark:text-slate-100 focus:ring-2 focus:ring-indigo-500 focus:border-transparent outline-none"
+              placeholder="Write a comment..."
+              className="flex-1 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl px-4 py-2 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 outline-none"
             />
-            <button 
-              type="submit"
-              className="bg-indigo-600 text-white rounded-full p-2 w-8 h-8 flex items-center justify-center hover:bg-indigo-700 transition-colors disabled:opacity-50"
-              disabled={!commentText.trim()}
-            >
-              <i className="fa-solid fa-arrow-up text-xs"></i>
-            </button>
+            <button type="submit" className="bg-indigo-600 text-white text-xs font-bold px-4 rounded-xl hover:bg-indigo-700 transition-colors">Post</button>
           </form>
         </div>
       )}

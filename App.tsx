@@ -24,6 +24,7 @@ const App: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState<{ text: string; links: any[]; images: string[] } | null>(null);
   const [isSearching, setIsSearching] = useState(false);
+  const [feedQuery, setFeedQuery] = useState('');
   const [followingIds, setFollowingIds] = useState<Set<string>>(new Set(['2', '4']));
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
@@ -56,7 +57,8 @@ const App: React.FC = () => {
           { id: 'c1', userId: '3', userName: 'John Doe', userAvatar: 'https://picsum.photos/seed/john/100/100', text: "This looks amazing!", createdAt: "2h ago" }
         ],
         createdAt: '1h ago',
-        isLiked: false
+        isLiked: false,
+        isBookmarked: false
       },
       {
         id: '102',
@@ -69,7 +71,8 @@ const App: React.FC = () => {
         likes: 156,
         comments: [],
         createdAt: '4h ago',
-        isLiked: true
+        isLiked: true,
+        isBookmarked: false
       }
     ];
     setPosts(initialPosts);
@@ -109,7 +112,8 @@ const App: React.FC = () => {
       likes: 0,
       comments: [],
       createdAt: 'Just now',
-      isLiked: false
+      isLiked: false,
+      isBookmarked: false
     };
     setPosts([newPost, ...posts]);
   };
@@ -147,6 +151,19 @@ const App: React.FC = () => {
       }
       return post;
     }));
+  };
+
+
+  const handleBookmark = (id: string) => {
+    setPosts(prev => prev.map(post => post.id === id ? { ...post, isBookmarked: !post.isBookmarked } : post));
+  };
+
+  const markNotificationRead = (id: string) => {
+    setNotifications(prev => prev.map(notif => notif.id === id ? { ...notif, isRead: true } : notif));
+  };
+
+  const markAllNotificationsRead = () => {
+    setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
   };
 
   const handleSearch = async () => {
@@ -195,6 +212,16 @@ const App: React.FC = () => {
   };
 
   const unreadCount = useMemo(() => notifications.filter(n => !n.isRead).length, [notifications]);
+  const filteredPosts = useMemo(() => {
+    const query = feedQuery.trim().toLowerCase();
+    if (!query) return posts;
+    return posts.filter(post =>
+      post.content.toLowerCase().includes(query) ||
+      post.userName.toLowerCase().includes(query) ||
+      post.userHandle.toLowerCase().includes(query)
+    );
+  }, [posts, feedQuery]);
+  const bookmarkedPosts = useMemo(() => posts.filter(post => post.isBookmarked), [posts]);
   const stories = useMemo(() => [
     { id: 's1', name: 'You', avatar: currentUser?.avatar || 'https://picsum.photos/seed/you/100/100' },
     { id: 's2', name: 'Sinigang AI', avatar: 'https://picsum.photos/seed/ai-story/100/100', isLive: true },
@@ -214,10 +241,25 @@ const App: React.FC = () => {
           <div className="max-w-xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <Stories stories={stories} />
             <CreatePost userAvatar={currentUser.avatar} onPostCreated={handleCreatePost} />
+            <div className="mb-4">
+              <input
+                type="text"
+                value={feedQuery}
+                onChange={(e) => setFeedQuery(e.target.value)}
+                placeholder="Search posts, people, or handles..."
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+              />
+            </div>
             <div className="space-y-6">
-              {posts.map(post => (
-                <PostCard key={post.id} post={post} onLike={handleLike} onComment={handleComment} />
+              {filteredPosts.map(post => (
+                <PostCard key={post.id} post={post} onLike={handleLike} onComment={handleComment} onBookmark={handleBookmark} />
               ))}
+              {filteredPosts.length === 0 && (
+                <div className="p-8 text-center text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <i className="fa-solid fa-magnifying-glass mb-2"></i>
+                  <p>No posts matched your search.</p>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -228,18 +270,26 @@ const App: React.FC = () => {
               user={currentUser} 
               posts={posts.filter(p => p.userId === currentUser.id)} 
               onLike={handleLike} 
-              onComment={handleComment} 
+              onComment={handleComment}
+              onBookmark={handleBookmark} 
             />
           </div>
         );
       case ViewMode.NOTIFICATIONS:
         return (
           <div className="max-w-2xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <h2 className="text-2xl font-bold mb-6">Notifications</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Notifications</h2>
+              <button onClick={markAllNotificationsRead} className="text-xs font-bold uppercase tracking-wide text-indigo-600 dark:text-indigo-400 hover:underline">Mark all read</button>
+            </div>
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
               {notifications.map((notif) => (
+                <button
+                  key={notif.id}
+                  onClick={() => markNotificationRead(notif.id)}
+                  className="w-full text-left"
+                >
                 <div 
-                  key={notif.id} 
                   className={`p-6 border-b border-slate-100 dark:border-slate-800 flex items-start gap-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50 ${!notif.isRead ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}`}
                 >
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
@@ -266,11 +316,29 @@ const App: React.FC = () => {
                     <p className="text-sm text-slate-600 dark:text-slate-400">{notif.content}</p>
                   </div>
                 </div>
+                </button>
               ))}
               {notifications.length === 0 && (
                 <div className="p-12 text-center text-slate-400">
                   <i className="fa-regular fa-bell text-4xl mb-4"></i>
                   <p>No notifications yet</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+      case ViewMode.BOOKMARKS:
+        return (
+          <div className="max-w-xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <h2 className="text-2xl font-bold mb-6">Saved Posts</h2>
+            <div className="space-y-6">
+              {bookmarkedPosts.map(post => (
+                <PostCard key={post.id} post={post} onLike={handleLike} onComment={handleComment} onBookmark={handleBookmark} />
+              ))}
+              {bookmarkedPosts.length === 0 && (
+                <div className="p-10 text-center text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl">
+                  <i className="fa-regular fa-bookmark text-3xl mb-3"></i>
+                  <p>No saved posts yet. Bookmark posts from your feed to keep them here.</p>
                 </div>
               )}
             </div>
@@ -441,6 +509,7 @@ const App: React.FC = () => {
             badge={unreadCount > 0 ? unreadCount : undefined}
           />
           <NavItem icon="fa-user" label="Profile" active={view === ViewMode.PROFILE} onClick={() => setView(ViewMode.PROFILE)} />
+          <NavItem icon="fa-bookmark" label="Saved" active={view === ViewMode.BOOKMARKS} onClick={() => setView(ViewMode.BOOKMARKS)} />
           
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)}
