@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Post, User, ViewMode, Comment, Notification } from './types';
 import PostCard from './components/PostCard';
 import CreatePost from './components/CreatePost';
+import Stories from './components/Stories';
 import Profile from './components/Profile';
 import Auth from './components/Auth';
 import AiAssistant from './components/AiAssistant';
@@ -18,12 +19,22 @@ const App: React.FC = () => {
   });
 
   const [view, setView] = useState<ViewMode>(ViewMode.FEED);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [posts, setPosts] = useState<Post[]>(() => {
+    const saved = localStorage.getItem('posts');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [notifications, setNotifications] = useState<Notification[]>(() => {
+    const saved = localStorage.getItem('notifications');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState<{ text: string; links: any[]; images: string[] } | null>(null);
   const [isSearching, setIsSearching] = useState(false);
-  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set(['2', '4']));
+  const [feedQuery, setFeedQuery] = useState('');
+  const [followingIds, setFollowingIds] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('followingIds');
+    return saved ? new Set(JSON.parse(saved)) : new Set(['f1']);
+  });
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -40,22 +51,24 @@ const App: React.FC = () => {
   }, [isDarkMode]);
 
   useEffect(() => {
-    // Initial Posts
+    if (posts.length > 0 || notifications.length > 0) return;
+
     const initialPosts: Post[] = [
       {
         id: '101',
         userId: '2',
-        userName: 'Aether AI',
-        userHandle: '@aether_ai',
+        userName: 'Sinigang AI',
+        userHandle: '@sinigang_ai',
         userAvatar: 'https://picsum.photos/seed/ai/200/200',
-        content: "Welcome to Aether! The first social platform powered by Gemini. Experience true creativity with our AI generation tools. 🚀 #AetherAI #Future",
+        content: "Welcome to Sinigang Social! The first social platform powered by Gemini. Experience true creativity with our AI generation tools. 🚀 #SinigangSocial #Future",
         image: 'https://picsum.photos/seed/tech/800/600',
         likes: 242,
         comments: [
           { id: 'c1', userId: '3', userName: 'John Doe', userAvatar: 'https://picsum.photos/seed/john/100/100', text: "This looks amazing!", createdAt: "2h ago" }
         ],
         createdAt: '1h ago',
-        isLiked: false
+        isLiked: false,
+        isBookmarked: false
       },
       {
         id: '102',
@@ -68,18 +81,29 @@ const App: React.FC = () => {
         likes: 156,
         comments: [],
         createdAt: '4h ago',
-        isLiked: true
+        isLiked: true,
+        isBookmarked: false
       }
     ];
     setPosts(initialPosts);
-
-    // Initial Notifications
     setNotifications([
-      { id: 'n1', type: 'LIKE', user: { name: 'Aether AI', avatar: 'https://picsum.photos/seed/ai/200/200' }, content: 'liked your post about coding.', timestamp: '10m ago', isRead: false },
+      { id: 'n1', type: 'LIKE', user: { name: 'Sinigang AI', avatar: 'https://picsum.photos/seed/ai/200/200' }, content: 'liked your post about coding.', timestamp: '10m ago', isRead: false },
       { id: 'n2', type: 'FOLLOW', user: { name: 'Elena Rossi', avatar: 'https://picsum.photos/seed/a2/50/50' }, content: 'started following you.', timestamp: '2h ago', isRead: true },
       { id: 'n3', type: 'MENTION', user: { name: 'Marcus Chen', avatar: 'https://picsum.photos/seed/a1/50/50' }, content: 'mentioned you in a post: "Check out the new project!"', timestamp: '5h ago', isRead: true },
     ]);
-  }, []);
+  }, [posts.length, notifications.length]);
+
+  useEffect(() => {
+    localStorage.setItem('posts', JSON.stringify(posts));
+  }, [posts]);
+
+  useEffect(() => {
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+  }, [notifications]);
+
+  useEffect(() => {
+    localStorage.setItem('followingIds', JSON.stringify(Array.from(followingIds)));
+  }, [followingIds]);
 
   const handleAuthSuccess = (user: User) => {
     setCurrentUser(user);
@@ -91,8 +115,14 @@ const App: React.FC = () => {
   const handleSignOut = () => {
     setIsAuthenticated(false);
     setCurrentUser(null);
+    setView(ViewMode.FEED);
     localStorage.removeItem('isAuth');
     localStorage.removeItem('user');
+  };
+
+  const handleUserUpdate = (user: User) => {
+    setCurrentUser(user);
+    localStorage.setItem('user', JSON.stringify(user));
   };
 
   const handleCreatePost = (content: string, image?: string) => {
@@ -108,9 +138,10 @@ const App: React.FC = () => {
       likes: 0,
       comments: [],
       createdAt: 'Just now',
-      isLiked: false
+      isLiked: false,
+      isBookmarked: false
     };
-    setPosts([newPost, ...posts]);
+    setPosts(prev => [newPost, ...prev]);
   };
 
   const handleLike = (id: string) => {
@@ -148,6 +179,19 @@ const App: React.FC = () => {
     }));
   };
 
+
+  const handleBookmark = (id: string) => {
+    setPosts(prev => prev.map(post => post.id === id ? { ...post, isBookmarked: !post.isBookmarked } : post));
+  };
+
+  const markNotificationRead = (id: string) => {
+    setNotifications(prev => prev.map(notif => notif.id === id ? { ...notif, isRead: true } : notif));
+  };
+
+  const markAllNotificationsRead = () => {
+    setNotifications(prev => prev.map(notif => ({ ...notif, isRead: true })));
+  };
+
   const handleSearch = async () => {
     if (!searchQuery.trim()) return;
     setIsSearching(true);
@@ -177,7 +221,7 @@ const App: React.FC = () => {
       if (next.has(id)) {
         next.delete(id);
         if (currentUser) {
-          const updated = { ...currentUser, following: currentUser.following - 1 };
+          const updated = { ...currentUser, following: Math.max(0, currentUser.following - 1) };
           setCurrentUser(updated);
           localStorage.setItem('user', JSON.stringify(updated));
         }
@@ -194,6 +238,23 @@ const App: React.FC = () => {
   };
 
   const unreadCount = useMemo(() => notifications.filter(n => !n.isRead).length, [notifications]);
+  const filteredPosts = useMemo(() => {
+    const query = feedQuery.trim().toLowerCase();
+    if (!query) return posts;
+    return posts.filter(post =>
+      post.content.toLowerCase().includes(query) ||
+      post.userName.toLowerCase().includes(query) ||
+      post.userHandle.toLowerCase().includes(query)
+    );
+  }, [posts, feedQuery]);
+  const bookmarkedPosts = useMemo(() => posts.filter(post => post.isBookmarked), [posts]);
+  const stories = useMemo(() => [
+    { id: 's1', name: 'You', avatar: currentUser?.avatar || 'https://picsum.photos/seed/you/100/100' },
+    { id: 's2', name: 'Sinigang AI', avatar: 'https://picsum.photos/seed/ai-story/100/100', isLive: true },
+    { id: 's3', name: 'Marcus', avatar: 'https://picsum.photos/seed/marcus-story/100/100' },
+    { id: 's4', name: 'Elena', avatar: 'https://picsum.photos/seed/elena-story/100/100' },
+    { id: 's5', name: 'Liam', avatar: 'https://picsum.photos/seed/liam-story/100/100' },
+  ], [currentUser?.avatar]);
 
   if (!isAuthenticated || !currentUser) {
     return <Auth onAuthenticate={handleAuthSuccess} />;
@@ -204,11 +265,27 @@ const App: React.FC = () => {
       case ViewMode.FEED:
         return (
           <div className="max-w-xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <Stories stories={stories} />
             <CreatePost userAvatar={currentUser.avatar} onPostCreated={handleCreatePost} />
+            <div className="mb-4">
+              <input
+                type="text"
+                value={feedQuery}
+                onChange={(e) => setFeedQuery(e.target.value)}
+                placeholder="Search posts, people, or handles..."
+                className="w-full bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl px-4 py-3 text-sm text-slate-800 dark:text-slate-100 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 outline-none"
+              />
+            </div>
             <div className="space-y-6">
-              {posts.map(post => (
-                <PostCard key={post.id} post={post} onLike={handleLike} onComment={handleComment} />
+              {filteredPosts.map(post => (
+                <PostCard key={post.id} post={post} onLike={handleLike} onComment={handleComment} onBookmark={handleBookmark} />
               ))}
+              {filteredPosts.length === 0 && (
+                <div className="p-8 text-center text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl">
+                  <i className="fa-solid fa-magnifying-glass mb-2"></i>
+                  <p>No posts matched your search.</p>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -219,18 +296,27 @@ const App: React.FC = () => {
               user={currentUser} 
               posts={posts.filter(p => p.userId === currentUser.id)} 
               onLike={handleLike} 
-              onComment={handleComment} 
+              onComment={handleComment}
+              onBookmark={handleBookmark} 
+              onUserUpdate={handleUserUpdate}
             />
           </div>
         );
       case ViewMode.NOTIFICATIONS:
         return (
           <div className="max-w-2xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
-            <h2 className="text-2xl font-bold mb-6">Notifications</h2>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-2xl font-bold">Notifications</h2>
+              <button onClick={markAllNotificationsRead} disabled={unreadCount === 0} className="text-xs font-bold uppercase tracking-wide text-indigo-600 dark:text-indigo-400 hover:underline disabled:opacity-40 disabled:no-underline">Mark all read</button>
+            </div>
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
               {notifications.map((notif) => (
+                <button
+                  key={notif.id}
+                  onClick={() => markNotificationRead(notif.id)}
+                  className="w-full text-left"
+                >
                 <div 
-                  key={notif.id} 
                   className={`p-6 border-b border-slate-100 dark:border-slate-800 flex items-start gap-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/50 ${!notif.isRead ? 'bg-indigo-50/30 dark:bg-indigo-900/10' : ''}`}
                 >
                   <div className={`w-10 h-10 rounded-full flex items-center justify-center shrink-0 ${
@@ -257,6 +343,7 @@ const App: React.FC = () => {
                     <p className="text-sm text-slate-600 dark:text-slate-400">{notif.content}</p>
                   </div>
                 </div>
+                </button>
               ))}
               {notifications.length === 0 && (
                 <div className="p-12 text-center text-slate-400">
@@ -267,16 +354,33 @@ const App: React.FC = () => {
             </div>
           </div>
         );
+      case ViewMode.BOOKMARKS:
+        return (
+          <div className="max-w-xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
+            <h2 className="text-2xl font-bold mb-6">Saved Posts</h2>
+            <div className="space-y-6">
+              {bookmarkedPosts.map(post => (
+                <PostCard key={post.id} post={post} onLike={handleLike} onComment={handleComment} onBookmark={handleBookmark} />
+              ))}
+              {bookmarkedPosts.length === 0 && (
+                <div className="p-10 text-center text-slate-400 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl">
+                  <i className="fa-regular fa-bookmark text-3xl mb-3"></i>
+                  <p>No saved posts yet. Bookmark posts from your feed to keep them here.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        );
       case ViewMode.EXPLORE:
         return (
           <div className="max-w-4xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="mb-8 text-center">
-              <h1 className="text-4xl font-black text-slate-900 dark:text-slate-100 mb-2 tracking-tighter">Discover Aether</h1>
+              <h1 className="text-4xl font-black text-slate-900 dark:text-slate-100 mb-2 tracking-tighter">Discover Sinigang Social</h1>
               <p className="text-slate-500 dark:text-slate-400 mb-8">Search the world with real-time AI and visual previews.</p>
               <div className="relative group max-w-2xl mx-auto">
                 <input 
                   type="text" 
-                  placeholder="Ask Aether AI for real-time news or trends..."
+                  placeholder="Ask Sinigang AI for real-time news or trends..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
@@ -328,7 +432,7 @@ const App: React.FC = () => {
                         <i className="fa-solid fa-sparkles text-indigo-600 dark:text-indigo-400"></i>
                       </div>
                       <div>
-                        <h3 className="font-black text-slate-900 dark:text-slate-100 leading-tight">Aether Synthesis</h3>
+                        <h3 className="font-black text-slate-900 dark:text-slate-100 leading-tight">Sinigang Social Synthesis</h3>
                         <p className="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Grounded Real-time Analysis</p>
                       </div>
                     </div>
@@ -418,7 +522,7 @@ const App: React.FC = () => {
           <div className="w-10 h-10 bg-indigo-600 rounded-2xl flex items-center justify-center shadow-lg shadow-indigo-200 dark:shadow-none transition-transform hover:scale-110">
             <i className="fa-solid fa-bolt text-white text-xl"></i>
           </div>
-          <span className="hidden lg:block text-2xl font-black text-indigo-900 dark:text-indigo-100 tracking-tighter">AETHER</span>
+          <span className="hidden lg:block text-2xl font-black text-indigo-900 dark:text-indigo-100 tracking-tighter">SINIGANG SOCIAL</span>
         </div>
 
         <div className="flex-1 flex md:flex-col items-center lg:items-stretch justify-around w-full gap-2">
@@ -432,6 +536,7 @@ const App: React.FC = () => {
             badge={unreadCount > 0 ? unreadCount : undefined}
           />
           <NavItem icon="fa-user" label="Profile" active={view === ViewMode.PROFILE} onClick={() => setView(ViewMode.PROFILE)} />
+          <NavItem icon="fa-bookmark" label="Saved" active={view === ViewMode.BOOKMARKS} onClick={() => setView(ViewMode.BOOKMARKS)} />
           
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)}
@@ -482,7 +587,7 @@ const App: React.FC = () => {
             <TrendingItem tag="#Web3World" posts="124k" />
             <TrendingItem tag="#DigitalRenaissance" posts="98k" />
             <TrendingItem tag="#GenerativeArt" posts="82k" />
-            <TrendingItem tag="#AetherAI" posts="45k" />
+            <TrendingItem tag="#SinigangSocial" posts="45k" />
           </ul>
         </div>
 
@@ -517,12 +622,24 @@ const App: React.FC = () => {
             />
           </ul>
         </div>
+
+        <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 shadow-sm mt-8">
+          <h3 className="font-bold text-slate-900 dark:text-slate-100 mb-6 flex items-center justify-between text-sm uppercase tracking-wider">
+            Messages
+            <i className="fa-regular fa-paper-plane text-indigo-500"></i>
+          </h3>
+          <ul className="space-y-4">
+            <MessageItem name="Sinigang AI" handle="@sinigang_ai" lastMessage="I can help draft your next post!" time="2m" unread />
+            <MessageItem name="Elena Rossi" handle="@elena_codes" lastMessage="Would love your feedback on my portfolio redesign." time="1h" />
+            <MessageItem name="Marcus Chen" handle="@mchen_art" lastMessage="Collab on an AI art challenge this weekend?" time="4h" />
+          </ul>
+        </div>
         
         <div className="mt-8 px-6 text-[10px] text-slate-400 dark:text-slate-600 font-bold uppercase tracking-widest flex flex-wrap gap-4">
           <a href="#" className="hover:text-indigo-500 transition-colors">Privacy</a>
           <a href="#" className="hover:text-indigo-500 transition-colors">Terms</a>
           <a href="#" className="hover:text-indigo-500 transition-colors">Cookies</a>
-          <span>© 2025 Aether AI</span>
+          <span>© 2025 Sinigang Social</span>
         </div>
       </aside>
 
@@ -575,6 +692,22 @@ const FollowItem: React.FC<{ id: string; name: string; handle: string; avatar: s
     >
       {isFollowing ? 'Following' : 'Follow'}
     </button>
+  </li>
+);
+
+const MessageItem: React.FC<{ name: string; handle: string; lastMessage: string; time: string; unread?: boolean }> = ({ name, handle, lastMessage, time, unread }) => (
+  <li className="border border-slate-100 dark:border-slate-800 rounded-2xl p-3 hover:border-indigo-200 dark:hover:border-indigo-800 transition-colors cursor-pointer">
+    <div className="flex items-start justify-between gap-3 mb-1">
+      <div>
+        <p className="text-xs font-bold text-slate-800 dark:text-slate-100">{name}</p>
+        <p className="text-[10px] text-slate-400">{handle}</p>
+      </div>
+      <span className="text-[10px] font-bold text-slate-400">{time}</span>
+    </div>
+    <div className="flex items-center justify-between gap-2">
+      <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-1">{lastMessage}</p>
+      {unread && <span className="w-2 h-2 rounded-full bg-indigo-500"></span>}
+    </div>
   </li>
 );
 

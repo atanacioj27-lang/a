@@ -50,7 +50,7 @@ const CreatePost: React.FC<CreatePostProps> = ({ userAvatar, onPostCreated }) =>
       {isGenerating && (
         <div className="absolute inset-0 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm z-20 flex flex-col items-center justify-center gap-3">
           <div className="w-12 h-12 border-4 border-indigo-100 dark:border-slate-800 border-t-indigo-600 rounded-full animate-spin"></div>
-          <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Aether AI is crafting your masterpiece...</p>
+          <p className="text-sm font-medium text-slate-600 dark:text-slate-300">Sinigang AI is crafting your masterpiece...</p>
         </div>
       )}
 

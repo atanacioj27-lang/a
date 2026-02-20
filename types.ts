@@ -31,7 +31,9 @@ export interface Post {
   comments: Comment[];
   createdAt: string;
   isLiked?: boolean;
+  isBookmarked?: boolean;
 }
+
 
 export interface Notification {
   id: string;
@@ -49,5 +51,7 @@ export enum ViewMode {
   FEED = 'FEED',
   EXPLORE = 'EXPLORE',
   NOTIFICATIONS = 'NOTIFICATIONS',
-  PROFILE = 'PROFILE'
+  PROFILE = 'PROFILE',
+  BOOKMARKS = 'BOOKMARKS'
 }
+
