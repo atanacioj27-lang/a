@@ -49,8 +49,21 @@ const PostCard: React.FC<PostCardProps> = ({ post, onLike, onComment, onBookmark
   };
 
   const handleShare = async () => {
+    const shareText = `${post.content}\n\n${post.userHandle}`;
     try {
-      await navigator.clipboard.writeText(`${post.content}\n\n${post.userHandle}`);
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(shareText);
+      } else {
+        const helper = document.createElement('textarea');
+        helper.value = shareText;
+        helper.style.position = 'fixed';
+        helper.style.left = '-9999px';
+        document.body.appendChild(helper);
+        helper.focus();
+        helper.select();
+        document.execCommand('copy');
+        document.body.removeChild(helper);
+      }
       setCopyStatus('done');
       setTimeout(() => setCopyStatus('idle'), 1400);
     } catch (error) {

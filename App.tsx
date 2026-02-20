@@ -31,7 +31,10 @@ const App: React.FC = () => {
   const [searchResult, setSearchResult] = useState<{ text: string; links: any[]; images: string[] } | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [feedQuery, setFeedQuery] = useState('');
-  const [followingIds, setFollowingIds] = useState<Set<string>>(new Set(['2', '4']));
+  const [followingIds, setFollowingIds] = useState<Set<string>>(() => {
+    const saved = localStorage.getItem('followingIds');
+    return saved ? new Set(JSON.parse(saved)) : new Set(['f1']);
+  });
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('theme');
     return saved === 'dark' || (!saved && window.matchMedia('(prefers-color-scheme: dark)').matches);
@@ -98,6 +101,10 @@ const App: React.FC = () => {
     localStorage.setItem('notifications', JSON.stringify(notifications));
   }, [notifications]);
 
+  useEffect(() => {
+    localStorage.setItem('followingIds', JSON.stringify(Array.from(followingIds)));
+  }, [followingIds]);
+
   const handleAuthSuccess = (user: User) => {
     setCurrentUser(user);
     setIsAuthenticated(true);
@@ -134,7 +141,7 @@ const App: React.FC = () => {
       isLiked: false,
       isBookmarked: false
     };
-    setPosts([newPost, ...posts]);
+    setPosts(prev => [newPost, ...prev]);
   };
 
   const handleLike = (id: string) => {
@@ -214,7 +221,7 @@ const App: React.FC = () => {
       if (next.has(id)) {
         next.delete(id);
         if (currentUser) {
-          const updated = { ...currentUser, following: currentUser.following - 1 };
+          const updated = { ...currentUser, following: Math.max(0, currentUser.following - 1) };
           setCurrentUser(updated);
           localStorage.setItem('user', JSON.stringify(updated));
         }
@@ -300,7 +307,7 @@ const App: React.FC = () => {
           <div className="max-w-2xl mx-auto py-8 animate-in fade-in slide-in-from-bottom-2 duration-300">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-2xl font-bold">Notifications</h2>
-              <button onClick={markAllNotificationsRead} className="text-xs font-bold uppercase tracking-wide text-indigo-600 dark:text-indigo-400 hover:underline">Mark all read</button>
+              <button onClick={markAllNotificationsRead} disabled={unreadCount === 0} className="text-xs font-bold uppercase tracking-wide text-indigo-600 dark:text-indigo-400 hover:underline disabled:opacity-40 disabled:no-underline">Mark all read</button>
             </div>
             <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl overflow-hidden shadow-sm">
               {notifications.map((notif) => (
