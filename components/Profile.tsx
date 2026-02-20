@@ -10,13 +10,24 @@ interface ProfileProps {
   onLike: (id: string) => void;
   onComment: (id: string, text: string) => void;
   onBookmark: (id: string) => void;
+  onUserUpdate: (user: User) => void;
 }
 
-const Profile: React.FC<ProfileProps> = ({ user, posts, onLike, onComment, onBookmark }) => {
+const Profile: React.FC<ProfileProps> = ({ user, posts, onLike, onComment, onBookmark, onUserUpdate }) => {
   const [activeTab, setActiveTab] = useState<'POSTS' | 'LIKES' | 'MEDIA'>('POSTS');
   const [isEditing, setIsEditing] = useState(false);
   const [bioInput, setBioInput] = useState(user.bio);
   const [isGeneratingBio, setIsGeneratingBio] = useState(false);
+
+  const likedPosts = posts.filter(post => post.isLiked);
+  const mediaPosts = posts.filter(post => Boolean(post.image));
+
+  const handleEditToggle = () => {
+    if (isEditing) {
+      onUserUpdate({ ...user, bio: bioInput.trim() || user.bio });
+    }
+    setIsEditing(!isEditing);
+  };
 
   const handleGenerateBio = async () => {
     setIsGeneratingBio(true);
@@ -44,7 +55,7 @@ const Profile: React.FC<ProfileProps> = ({ user, posts, onLike, onComment, onBoo
               className="w-24 h-24 rounded-3xl object-cover border-4 border-white dark:border-slate-900 shadow-lg ring-1 ring-slate-100 dark:ring-slate-800" 
             />
             <button 
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={handleEditToggle}
               className="bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-slate-100 px-6 py-2 rounded-full text-sm font-semibold hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
             >
               {isEditing ? 'Save Profile' : 'Edit Profile'}
@@ -117,10 +128,28 @@ const Profile: React.FC<ProfileProps> = ({ user, posts, onLike, onComment, onBoo
         {activeTab === 'POSTS' && posts.map(post => (
           <PostCard key={post.id} post={post} onLike={onLike} onComment={onComment} onBookmark={onBookmark} />
         ))}
+        {activeTab === 'LIKES' && likedPosts.map(post => (
+          <PostCard key={post.id} post={post} onLike={onLike} onComment={onComment} onBookmark={onBookmark} />
+        ))}
+        {activeTab === 'MEDIA' && mediaPosts.map(post => (
+          <PostCard key={post.id} post={post} onLike={onLike} onComment={onComment} onBookmark={onBookmark} />
+        ))}
         {activeTab === 'POSTS' && posts.length === 0 && (
           <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
             <i className="fa-regular fa-image text-slate-200 dark:text-slate-800 text-5xl mb-4"></i>
             <p className="text-slate-500 dark:text-slate-600 text-sm">No posts yet. Share your first thought!</p>
+          </div>
+        )}
+        {activeTab === 'LIKES' && likedPosts.length === 0 && (
+          <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
+            <i className="fa-regular fa-heart text-slate-200 dark:text-slate-800 text-5xl mb-4"></i>
+            <p className="text-slate-500 dark:text-slate-600 text-sm">No liked posts yet. Tap hearts on posts to see them here.</p>
+          </div>
+        )}
+        {activeTab === 'MEDIA' && mediaPosts.length === 0 && (
+          <div className="text-center py-12 bg-white dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
+            <i className="fa-regular fa-image text-slate-200 dark:text-slate-800 text-5xl mb-4"></i>
+            <p className="text-slate-500 dark:text-slate-600 text-sm">No media posts yet. Share photos to build your gallery.</p>
           </div>
         )}
       </div>

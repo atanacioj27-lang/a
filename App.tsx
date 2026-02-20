@@ -19,8 +19,14 @@ const App: React.FC = () => {
   });
 
   const [view, setView] = useState<ViewMode>(ViewMode.FEED);
-  const [posts, setPosts] = useState<Post[]>([]);
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const [posts, setPosts] = useState<Post[]>(() => {
+    const saved = localStorage.getItem('posts');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [notifications, setNotifications] = useState<Notification[]>(() => {
+    const saved = localStorage.getItem('notifications');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResult, setSearchResult] = useState<{ text: string; links: any[]; images: string[] } | null>(null);
   const [isSearching, setIsSearching] = useState(false);
@@ -42,7 +48,8 @@ const App: React.FC = () => {
   }, [isDarkMode]);
 
   useEffect(() => {
-    // Initial Posts
+    if (posts.length > 0 || notifications.length > 0) return;
+
     const initialPosts: Post[] = [
       {
         id: '101',
@@ -76,14 +83,20 @@ const App: React.FC = () => {
       }
     ];
     setPosts(initialPosts);
-
-    // Initial Notifications
     setNotifications([
       { id: 'n1', type: 'LIKE', user: { name: 'Sinigang AI', avatar: 'https://picsum.photos/seed/ai/200/200' }, content: 'liked your post about coding.', timestamp: '10m ago', isRead: false },
       { id: 'n2', type: 'FOLLOW', user: { name: 'Elena Rossi', avatar: 'https://picsum.photos/seed/a2/50/50' }, content: 'started following you.', timestamp: '2h ago', isRead: true },
       { id: 'n3', type: 'MENTION', user: { name: 'Marcus Chen', avatar: 'https://picsum.photos/seed/a1/50/50' }, content: 'mentioned you in a post: "Check out the new project!"', timestamp: '5h ago', isRead: true },
     ]);
-  }, []);
+  }, [posts.length, notifications.length]);
+
+  useEffect(() => {
+    localStorage.setItem('posts', JSON.stringify(posts));
+  }, [posts]);
+
+  useEffect(() => {
+    localStorage.setItem('notifications', JSON.stringify(notifications));
+  }, [notifications]);
 
   const handleAuthSuccess = (user: User) => {
     setCurrentUser(user);
@@ -95,8 +108,14 @@ const App: React.FC = () => {
   const handleSignOut = () => {
     setIsAuthenticated(false);
     setCurrentUser(null);
+    setView(ViewMode.FEED);
     localStorage.removeItem('isAuth');
     localStorage.removeItem('user');
+  };
+
+  const handleUserUpdate = (user: User) => {
+    setCurrentUser(user);
+    localStorage.setItem('user', JSON.stringify(user));
   };
 
   const handleCreatePost = (content: string, image?: string) => {
@@ -272,6 +291,7 @@ const App: React.FC = () => {
               onLike={handleLike} 
               onComment={handleComment}
               onBookmark={handleBookmark} 
+              onUserUpdate={handleUserUpdate}
             />
           </div>
         );
